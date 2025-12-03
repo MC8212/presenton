@@ -14,6 +14,12 @@ export interface ImageProviderOption {
   requiresApiKey?: boolean;
   apiKeyField?: string;
   apiKeyFieldLabel?: string;
+  requiresUrl?: boolean;
+  urlField?: string;
+  urlFieldLabel?: string;
+  requiresModel?: boolean;
+  modelField?: string;
+  modelFieldLabel?: string;
 }
 
 export interface LLMProviderOption {
@@ -60,6 +66,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderOption> = {
     requiresApiKey: true,
     apiKeyField: "GOOGLE_API_KEY",
     apiKeyFieldLabel: "Google API Key"
+  },
+  custom: {
+    value: "custom",
+    label: "Custom",
+    description: "OpenAI-compatible image generation API (e.g., OpenRouter)",
+    requiresUrl: true,
+    urlField: "CUSTOM_IMAGE_URL",
+    urlFieldLabel: "Image API URL",
+    requiresApiKey: true,
+    apiKeyField: "CUSTOM_IMAGE_API_KEY",
+    apiKeyFieldLabel: "Image API Key",
+    requiresModel: true,
+    modelField: "CUSTOM_IMAGE_MODEL",
+    modelFieldLabel: "Image Model"
   },
 };
 

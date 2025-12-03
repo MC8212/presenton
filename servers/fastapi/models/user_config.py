@@ -32,6 +32,11 @@ class UserConfig(BaseModel):
     PEXELS_API_KEY: Optional[str] = None
     PIXABAY_API_KEY: Optional[str] = None
 
+    # Custom Image Provider
+    CUSTOM_IMAGE_URL: Optional[str] = None
+    CUSTOM_IMAGE_API_KEY: Optional[str] = None
+    CUSTOM_IMAGE_MODEL: Optional[str] = None
+
     # Reasoning
     TOOL_CALLS: Optional[bool] = None
     DISABLE_THINKING: Optional[bool] = None

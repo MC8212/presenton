@@ -75,17 +75,23 @@ export default function LLMProviderSelection({
         (llmConfig.IMAGE_PROVIDER === "dall-e-3" && !llmConfig.OPENAI_API_KEY) ||
         (llmConfig.IMAGE_PROVIDER === "gemini_flash" && !llmConfig.GOOGLE_API_KEY) ||
         (llmConfig.IMAGE_PROVIDER === "pexels" && !llmConfig.PEXELS_API_KEY) ||
-        (llmConfig.IMAGE_PROVIDER === "pixabay" && !llmConfig.PIXABAY_API_KEY)
+        (llmConfig.IMAGE_PROVIDER === "pixabay" && !llmConfig.PIXABAY_API_KEY) ||
+        (llmConfig.IMAGE_PROVIDER === "custom" && !llmConfig.CUSTOM_IMAGE_API_KEY)
       );
 
     const needsApiKey = needsProviderApiKey || needsImageProviderApiKey;
+
+    const needsCustomImageConfig =
+      !llmConfig.DISABLE_IMAGE_GENERATION &&
+      llmConfig.IMAGE_PROVIDER === "custom" &&
+      (!llmConfig.CUSTOM_IMAGE_URL || !llmConfig.CUSTOM_IMAGE_MODEL);
 
     const needsOllamaUrl = (llmConfig.LLM === "ollama" && !llmConfig.OLLAMA_URL);
 
     setButtonState({
       isLoading: false,
-      isDisabled: needsModelSelection || needsApiKey || needsOllamaUrl,
-      text: needsModelSelection ? "Please Select a Model" : needsApiKey ? "Please Enter API Key" : needsOllamaUrl ? "Please Enter Ollama URL" : "Save Configuration",
+      isDisabled: needsModelSelection || needsApiKey || needsOllamaUrl || needsCustomImageConfig,
+      text: needsModelSelection ? "Please Select a Model" : needsApiKey ? "Please Enter API Key" : needsOllamaUrl ? "Please Enter Ollama URL" : needsCustomImageConfig ? "Please Configure Custom Image Provider" : "Save Configuration",
       showProgress: false
     });
 
@@ -334,6 +340,60 @@ export default function LLMProviderSelection({
 
                 if (provider.value === "gemini_flash" && llmConfig.LLM === "google") {
                   return <></>;
+                }
+
+                // Handle custom image provider
+                if (provider.value === "custom") {
+                  return (
+                    <div className="space-y-4 mb-8">
+                      {/* Custom Image URL */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Image API URL
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g., https://openrouter.ai/api/v1"
+                          className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                          value={llmConfig.CUSTOM_IMAGE_URL || ""}
+                          onChange={(e) => input_field_changed(e.target.value, "custom_image_url")}
+                        />
+                      </div>
+
+                      {/* Custom Image API Key */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Image API Key
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter your API Key"
+                          className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                          value={llmConfig.CUSTOM_IMAGE_API_KEY || ""}
+                          onChange={(e) => input_field_changed(e.target.value, "custom_image_api_key")}
+                        />
+                      </div>
+
+                      {/* Custom Image Model */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Image Model
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g., google/gemini-2.5-flash-image"
+                          className="w-full px-4 py-2.5 outline-none border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                          value={llmConfig.CUSTOM_IMAGE_MODEL || ""}
+                          onChange={(e) => input_field_changed(e.target.value, "custom_image_model")}
+                        />
+                      </div>
+
+                      <p className="text-sm text-gray-500 flex items-center gap-2">
+                        <span className="block w-1 h-1 rounded-full bg-gray-400"></span>
+                        Use any OpenAI-compatible image generation API (e.g., OpenRouter)
+                      </p>
+                    </div>
+                  );
                 }
 
                 // Show API key input for other providers

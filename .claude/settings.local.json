@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"C:\\Users\\mc308324\\OneDrive - North Highland\\NH Crowell\\AI Agents\\Claude\\NH PPT Builder v2\\presenton\\servers\")",
+      "Bash(gh repo view:*)",
+      "Bash(git remote:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

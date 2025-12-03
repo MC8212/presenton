@@ -24,6 +24,9 @@ from utils.get_env import (
     get_pixabay_api_key_env,
     get_extended_reasoning_env,
     get_web_grounding_env,
+    get_custom_image_url_env,
+    get_custom_image_api_key_env,
+    get_custom_image_model_env,
 )
 from utils.parsers import parse_bool_or_none
 from utils.set_env import (
@@ -47,6 +50,9 @@ from utils.set_env import (
     set_pixabay_api_key_env,
     set_tool_calls_env,
     set_web_grounding_env,
+    set_custom_image_url_env,
+    set_custom_image_api_key_env,
+    set_custom_image_model_env,
 )
 
 
@@ -85,6 +91,10 @@ def get_user_config():
         ),
         PIXABAY_API_KEY=existing_config.PIXABAY_API_KEY or get_pixabay_api_key_env(),
         PEXELS_API_KEY=existing_config.PEXELS_API_KEY or get_pexels_api_key_env(),
+        CUSTOM_IMAGE_URL=existing_config.CUSTOM_IMAGE_URL or get_custom_image_url_env(),
+        CUSTOM_IMAGE_API_KEY=existing_config.CUSTOM_IMAGE_API_KEY
+        or get_custom_image_api_key_env(),
+        CUSTOM_IMAGE_MODEL=existing_config.CUSTOM_IMAGE_MODEL or get_custom_image_model_env(),
         TOOL_CALLS=(
             existing_config.TOOL_CALLS
             if existing_config.TOOL_CALLS is not None
@@ -142,6 +152,12 @@ def update_env_with_user_config():
         set_pixabay_api_key_env(user_config.PIXABAY_API_KEY)
     if user_config.PEXELS_API_KEY:
         set_pexels_api_key_env(user_config.PEXELS_API_KEY)
+    if user_config.CUSTOM_IMAGE_URL:
+        set_custom_image_url_env(user_config.CUSTOM_IMAGE_URL)
+    if user_config.CUSTOM_IMAGE_API_KEY:
+        set_custom_image_api_key_env(user_config.CUSTOM_IMAGE_API_KEY)
+    if user_config.CUSTOM_IMAGE_MODEL:
+        set_custom_image_model_env(user_config.CUSTOM_IMAGE_MODEL)
     if user_config.TOOL_CALLS is not None:
         set_tool_calls_env(str(user_config.TOOL_CALLS))
     if user_config.DISABLE_THINKING is not None:

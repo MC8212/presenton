@@ -28,6 +28,11 @@ export interface LLMConfig {
   PEXELS_API_KEY?: string;
   PIXABAY_API_KEY?: string;
 
+  // Custom Image Provider
+  CUSTOM_IMAGE_URL?: string;
+  CUSTOM_IMAGE_API_KEY?: string;
+  CUSTOM_IMAGE_MODEL?: string;
+
   // Other Configs
   TOOL_CALLS?: boolean;
   DISABLE_THINKING?: boolean;

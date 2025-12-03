@@ -6,6 +6,7 @@ from utils.get_env import (
     get_openai_api_key_env,
     get_pexels_api_key_env,
     get_pixabay_api_key_env,
+    get_custom_image_api_key_env,
 )
 from utils.parsers import parse_bool_or_none
 
@@ -30,6 +31,10 @@ def is_dalle3_selected() -> bool:
     return ImageProvider.DALLE3 == get_selected_image_provider()
 
 
+def is_custom_selected() -> bool:
+    return ImageProvider.CUSTOM == get_selected_image_provider()
+
+
 def get_selected_image_provider() -> ImageProvider | None:
     """
     Get the selected image provider from environment variables.
@@ -52,5 +57,7 @@ def get_image_provider_api_key() -> str:
         return get_google_api_key_env()
     elif selected_image_provider == ImageProvider.DALLE3:
         return get_openai_api_key_env()
+    elif selected_image_provider == ImageProvider.CUSTOM:
+        return get_custom_image_api_key_env()
     else:
         raise ValueError(f"Invalid image provider: {selected_image_provider}")

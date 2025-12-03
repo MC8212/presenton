@@ -99,3 +99,15 @@ def get_extended_reasoning_env():
 
 def get_web_grounding_env():
     return os.getenv("WEB_GROUNDING")
+
+
+def get_custom_image_url_env():
+    return os.getenv("CUSTOM_IMAGE_URL")
+
+
+def get_custom_image_api_key_env():
+    return os.getenv("CUSTOM_IMAGE_API_KEY")
+
+
+def get_custom_image_model_env():
+    return os.getenv("CUSTOM_IMAGE_MODEL")

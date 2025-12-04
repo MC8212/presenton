@@ -118,3 +118,58 @@ Main presentation endpoints:
 - `POST /api/v1/ppt/files/upload` - Upload PPTX/PDF for template extraction
 
 API docs available at `http://localhost:8000/docs` when backend is running.
+
+## Fork Management (North Highland)
+
+This repository is a fork of [presenton/presenton](https://github.com/presenton/presenton) with North Highland customizations.
+
+### Branch Strategy
+- **`main`** - Clean mirror of upstream `presenton/presenton` (never edit directly)
+- **`nh-custom`** - North Highland customizations branch (all changes go here)
+
+### Remote Configuration
+```
+origin   → https://github.com/MC8212/presenton.git (your fork)
+upstream → https://github.com/presenton/presenton.git (original)
+```
+
+### Syncing with Upstream
+
+Use the `/sync-upstream` slash command to automatically sync with upstream changes, or run manually:
+
+```bash
+# 1. Fetch latest from upstream
+git fetch upstream
+
+# 2. Update main to match upstream
+git checkout main
+git merge --ff-only upstream/main
+git push origin main
+
+# 3. Rebase customizations onto updated main
+git checkout nh-custom
+git rebase main
+
+# 4. Push updated customizations (force required after rebase)
+git push origin nh-custom --force-with-lease
+```
+
+### Handling Conflicts
+When conflicts occur during rebase:
+1. Resolve conflicts in each file, preserving NH customizations
+2. `git add <resolved-file>`
+3. `git rebase --continue`
+4. Repeat until rebase completes
+
+### NH Customizations
+The `nh-custom` branch includes:
+- Custom image provider support (OpenAI-compatible APIs like OpenRouter)
+- Extended configuration options for image generation
+- Claude Code configuration and slash commands
+- Deployment planning documentation
+
+### Making Changes
+1. Always work on the `nh-custom` branch
+2. Commit changes with descriptive messages
+3. Push to origin: `git push origin nh-custom`
+4. Periodically sync with upstream using `/sync-upstream`

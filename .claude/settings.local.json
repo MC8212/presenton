@@ -5,7 +5,9 @@
       "Bash(gh repo view:*)",
       "Bash(git remote:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

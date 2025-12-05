@@ -138,21 +138,43 @@ upstream → https://github.com/presenton/presenton.git (original)
 Use the `/sync-upstream` slash command to automatically sync with upstream changes, or run manually:
 
 ```bash
-# 1. Fetch latest from upstream
+# 1. Backup NH-specific data before sync
+cp app_data/fastapi.db app_data/fastapi.db.pre-sync-backup
+
+# 2. Fetch latest from upstream
 git fetch upstream
 
-# 2. Update main to match upstream
+# 3. Update main to match upstream
 git checkout main
 git merge --ff-only upstream/main
 git push origin main
 
-# 3. Rebase customizations onto updated main
+# 4. Rebase customizations onto updated main
 git checkout nh-custom
 git rebase main
 
-# 4. Push updated customizations (force required after rebase)
+# 5. Push updated customizations (force required after rebase)
 git push origin nh-custom --force-with-lease
 ```
+
+### Pre-Sync Checklist
+
+Before syncing with upstream, verify these are committed or backed up:
+
+- [ ] NH-branded templates in `presentation-templates/nh-*/`
+- [ ] Custom vision service (`services/vision_llm_service.py`)
+- [ ] Template provider endpoint (`api/v1/ppt/endpoints/template_providers.py`)
+- [ ] Database backup (`app_data/fastapi.db`)
+- [ ] User config backup (`app_data/userConfig.json`)
+
+### Post-Sync Verification
+
+After sync completes:
+
+1. **Check NH templates exist:** `ls servers/nextjs/presentation-templates/nh-*`
+2. **Verify custom services:** `ls servers/fastapi/services/vision_llm_service.py`
+3. **Test template creation page:** Navigate to `/custom-template` and verify provider selector
+4. **Test existing templates:** Generate a presentation using NH templates
 
 ### Handling Conflicts
 When conflicts occur during rebase:
@@ -167,6 +189,158 @@ The `nh-custom` branch includes:
 - Extended configuration options for image generation
 - Claude Code configuration and slash commands
 - Deployment planning documentation
+- **Multi-provider template extraction** (see below)
+- **Custom North Highland design templates** (see below)
+
+### Critical Files to Preserve During Sync
+
+When syncing with upstream, these NH-specific files/directories require special attention:
+
+| Path | Type | Notes |
+|------|------|-------|
+| `servers/nextjs/presentation-templates/nh-*` | Directory | NH-branded slide templates |
+| `servers/fastapi/services/vision_llm_service.py` | File | Multi-provider vision service |
+| `servers/fastapi/api/v1/ppt/endpoints/template_providers.py` | File | Provider availability endpoint |
+| `.claude/` | Directory | Claude Code configuration |
+| `app_data/` | Directory | Runtime data (gitignored, backup separately) |
+
+**Warning:** The `app_data/` directory contains:
+- `fastapi.db` - SQLite database with saved custom templates
+- `userConfig.json` - User configuration
+- Generated images and exports
+
+This directory is gitignored. For production deployments, back up `app_data/` separately.
+
+## Multi-Provider Template Extraction
+
+The custom template creation feature now supports multiple LLM providers instead of being hardcoded to OpenAI GPT-5.
+
+### How It Works
+
+When creating custom templates from PPTX/PDF files, users can select which AI provider to use for:
+1. **Slide-to-HTML conversion** - Converting slide images to HTML/Tailwind code
+2. **HTML-to-React conversion** - Converting HTML to React components for rendering
+
+### Supported Providers
+
+| Provider | Environment Variable | Model Used |
+|----------|---------------------|------------|
+| OpenAI | `OPENAI_API_KEY` | gpt-4o (vision) |
+| Google | `GOOGLE_API_KEY` | gemini-2.0-flash |
+| Anthropic | `ANTHROPIC_API_KEY` | claude-sonnet-4-20250514 |
+| Custom (OpenRouter) | `CUSTOM_LLM_URL` + `CUSTOM_LLM_API_KEY` | Configurable |
+
+### New Files Created
+
+**Backend:**
+- `services/vision_llm_service.py` - Abstraction layer for vision/multimodal LLM calls
+- `api/v1/ppt/endpoints/template_providers.py` - Endpoint to get available providers
+
+**Frontend:**
+- `app/(presentation-generator)/custom-template/hooks/useTemplateProvider.ts` - Provider state hook
+- `app/(presentation-generator)/custom-template/components/TemplateProviderSelector.tsx` - UI dropdown
+
+### API Endpoints
+
+- `GET /api/v1/ppt/template-providers/available` - Returns providers with configured API keys
+- `POST /api/v1/ppt/slide-to-html/` - Now accepts optional `provider` parameter
+- `POST /api/v1/ppt/html-to-react/` - Now accepts optional `provider` parameter
+- `POST /api/v1/ppt/edit-html-with-images/` - Now accepts optional `provider` form field
+
+### Configuration for Custom/OpenRouter
+
+To use OpenRouter or another OpenAI-compatible API:
+```bash
+CUSTOM_LLM_URL=https://openrouter.ai/api/v1
+CUSTOM_LLM_API_KEY=your-openrouter-key
+CUSTOM_LLM_MODEL=google/gemini-2.0-flash-exp:free  # Must support vision
+```
+
+**Important:** The custom model must support vision/multimodal inputs for template extraction to work.
+
+## Design Templates Architecture
+
+Presenton uses a hierarchical template system for generating presentations.
+
+### Template Storage Locations
+
+| Location | Type | Version Control | Notes |
+|----------|------|-----------------|-------|
+| `servers/nextjs/presentation-templates/` | Built-in templates | Git tracked | Upstream templates (general, modern, standard, swift) |
+| `servers/nextjs/presentation-templates/nh-*/` | NH custom templates | Git tracked | North Highland branded templates |
+| Database (`app_data/fastapi.db`) | User-created templates | Not tracked | Custom templates created via UI |
+
+### Built-in Template Structure
+
+Each template theme has:
+```
+presentation-templates/
+├── general/                    # General-purpose layouts
+│   ├── settings.json          # Theme configuration (colors, fonts)
+│   ├── IntroSlideLayout.tsx   # Slide layout components
+│   └── ...
+├── modern/                     # Modern theme
+├── standard/                   # Standard theme
+├── swift/                      # Swift theme
+└── nh-brand/                   # NH-specific (to be created)
+    ├── settings.json
+    └── [layouts].tsx
+```
+
+### settings.json Structure
+
+```json
+{
+  "name": "Theme Name",
+  "description": "Theme description",
+  "colorScheme": {
+    "primary": "#hex",
+    "secondary": "#hex",
+    "background": "#hex",
+    "text": "#hex"
+  },
+  "fonts": {
+    "heading": "Font Family",
+    "body": "Font Family"
+  }
+}
+```
+
+### Creating NH-Branded Templates
+
+1. **From existing PPTX:** Use `/custom-template` page to extract layouts from North Highland branded PPTX files
+2. **Manual creation:** Create `.tsx` files in `presentation-templates/nh-brand/`
+3. **Database templates:** Created via UI, stored in SQLite, accessed via `custom-{uuid}` slug
+
+### Template Versioning Strategy
+
+**For Git-tracked templates (presentation-templates/):**
+- Templates are part of the codebase and sync with upstream
+- NH-specific templates should be in `nh-*` directories to avoid conflicts
+- During upstream sync, preserve NH directories
+
+**For Database templates (app_data/fastapi.db):**
+- Not version controlled - back up separately
+- Export templates before major updates
+- Can be migrated via SQL or re-created from source PPTX
+
+### Backing Up Custom Templates
+
+```bash
+# Backup database templates
+cp app_data/fastapi.db app_data/fastapi.db.backup
+
+# Export specific template (if export endpoint exists)
+# Or manually backup the presentation-templates directory
+tar -czf nh-templates-backup.tar.gz servers/nextjs/presentation-templates/nh-*
+```
+
+### Restoring After Upstream Sync
+
+If NH templates are lost during sync:
+1. Check `git stash list` for stashed changes
+2. Restore from backup: `git checkout nh-custom -- servers/nextjs/presentation-templates/nh-*`
+3. For database templates, restore `app_data/fastapi.db` from backup
 
 ### Making Changes
 1. Always work on the `nh-custom` branch

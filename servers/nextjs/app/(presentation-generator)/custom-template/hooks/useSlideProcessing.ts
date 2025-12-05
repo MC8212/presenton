@@ -7,8 +7,8 @@ export const useSlideProcessing = (
   selectedFile: File | null,
   slides: ProcessedSlide[],
   setSlides: React.Dispatch<React.SetStateAction<ProcessedSlide[]>>,
-  
-  setFontsData: React.Dispatch<React.SetStateAction<FontData | null>>
+  setFontsData: React.Dispatch<React.SetStateAction<FontData | null>>,
+  selectedProvider: string | null = null
 ) => {
   const [isProcessingPptx, setIsProcessingPptx] = useState(false);
 
@@ -16,7 +16,7 @@ export const useSlideProcessing = (
   const processSlideToHtml = useCallback(
     async (slide: SlideData, index: number) => {
       console.log(
-        `Starting to process slide ${slide.slide_number} at index ${index}`
+        `Starting to process slide ${slide.slide_number} at index ${index} with provider: ${selectedProvider || "default"}`
       );
 
       // Update slide to processing state
@@ -36,6 +36,7 @@ export const useSlideProcessing = (
             image: slide.screenshot_url,
             xml: slide.xml_content,
             fonts: slide.normalized_fonts ?? [],
+            provider: selectedProvider,
           }),
         });
 
@@ -112,7 +113,7 @@ export const useSlideProcessing = (
         });
       }
     },
-    []
+    [selectedProvider]
   );
 
   // Process PDF or PPTX file to extract slides

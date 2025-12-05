@@ -10,6 +10,7 @@ import { useFileUpload } from "./hooks/useFileUpload";
 import { useSlideProcessing } from "./hooks/useSlideProcessing";
 import { useLayoutSaving } from "./hooks/useLayoutSaving";
 import { useAPIKeyCheck } from "./hooks/useAPIKeyCheck";
+import { useTemplateProvider } from "./hooks/useTemplateProvider";
 import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { FileUploadSection } from "./components/FileUploadSection";
@@ -17,15 +18,23 @@ import { SaveLayoutButton } from "./components/SaveLayoutButton";
 import { SaveLayoutModal } from "./components/SaveLayoutModal";
 import EachSlide from "./components/EachSlide/NewEachSlide";
 import { APIKeyWarning } from "./components/APIKeyWarning";
+import TemplateProviderSelector from "./components/TemplateProviderSelector";
 import { trackEvent, MixpanelEvent } from "@/utils/mixpanel";
 
 const CustomTemplatePage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { refetch } = useLayout();
-  
+
   // Custom hooks for different concerns
   const { hasRequiredKey, isRequiredKeyLoading } = useAPIKeyCheck();
+  const {
+    selectedProvider,
+    setSelectedProvider,
+    availableProviders,
+    isLoading: isProvidersLoading,
+    error: providersError,
+  } = useTemplateProvider();
   const { selectedFile, handleFileSelect, removeFile } = useFileUpload();
   const { slides, setSlides, completedSlides } = useCustomLayout();
   const { fontsData, UploadedFonts, uploadFont, removeFont, getAllUnsupportedFonts, setFontsData } = useFontManagement();
@@ -33,14 +42,16 @@ const CustomTemplatePage = () => {
     selectedFile,
     slides,
     setSlides,
-    setFontsData
+    setFontsData,
+    selectedProvider
   );
   const { isSavingLayout, isModalOpen, openSaveModal, closeSaveModal, saveLayout } = useLayoutSaving(
     slides,
     UploadedFonts,
     fontsData,
     refetch,
-    setSlides
+    setSlides,
+    selectedProvider
   );
 
   const handleSaveTemplate = async (layoutName: string, description: string): Promise<string | null> => {
@@ -112,7 +123,18 @@ const CustomTemplatePage = () => {
             </div>
           </div>
         </div>
-       
+
+        {/* AI Provider Selection */}
+        <div className="max-w-md mx-auto mb-6">
+          <TemplateProviderSelector
+            providers={availableProviders}
+            selectedProvider={selectedProvider}
+            onProviderChange={setSelectedProvider}
+            disabled={isProcessingPptx || slides.some((s) => s.processing)}
+            isLoading={isProvidersLoading}
+            error={providersError}
+          />
+        </div>
 
         {/* File Upload Section */}
         <FileUploadSection

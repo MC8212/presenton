@@ -9,7 +9,8 @@ export const useLayoutSaving = (
   UploadedFonts: UploadedFont[],
   fontsData: FontData | null,
   refetch: () => void,
-  setSlides: React.Dispatch<React.SetStateAction<ProcessedSlide[]>>
+  setSlides: React.Dispatch<React.SetStateAction<ProcessedSlide[]>>,
+  selectedProvider: string | null = null
 ) => {
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +29,7 @@ export const useLayoutSaving = (
     const maxRetries = 3;
     let retryCount = 0;
 
-    console.log("Slide to convert to react", {
+    console.log("Slide to convert to react with provider:", selectedProvider, {
       html: slide.html,
       image: slide.screenshot_url,
     })
@@ -43,6 +44,7 @@ export const useLayoutSaving = (
           body: JSON.stringify({
             html: slide.html,
             image: slide.screenshot_url,
+            provider: selectedProvider,
           }),
         });
 

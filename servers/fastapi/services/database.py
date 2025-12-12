@@ -1,3 +1,7 @@
+# Load environment variables before any other code
+from dotenv import load_dotenv
+load_dotenv()
+
 from collections.abc import AsyncGenerator
 import os
 from sqlalchemy.ext.asyncio import (
@@ -33,8 +37,13 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-# Container DB (Lives inside the container)
-container_db_url = "sqlite+aiosqlite:////app/container.db"
+# Container DB (Lives inside the container, or app_data for local dev)
+from utils.get_env import get_app_data_directory_env
+_app_data_dir = get_app_data_directory_env()
+if _app_data_dir:
+    container_db_url = "sqlite+aiosqlite:///" + os.path.join(_app_data_dir, "container.db")
+else:
+    container_db_url = "sqlite+aiosqlite:////app/container.db"
 container_db_engine: AsyncEngine = create_async_engine(
     container_db_url, connect_args={"check_same_thread": False}
 )

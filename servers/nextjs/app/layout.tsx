@@ -6,6 +6,7 @@ import { Providers } from "./providers";
 import MixpanelInitializer from "./MixpanelInitializer";
 import { LayoutProvider } from "./(presentation-generator)/context/LayoutContext";
 import { Toaster } from "@/components/ui/sonner";
+import { ReactGrabProvider } from "@/components/ReactGrabProvider";
 const inter = localFont({
   src: [
     {
@@ -88,7 +89,9 @@ export default function RootLayout({
         <Providers>
           <MixpanelInitializer>
             <LayoutProvider>
-              {children}
+              <ReactGrabProvider>
+                {children}
+              </ReactGrabProvider>
             </LayoutProvider>
           </MixpanelInitializer>
         </Providers>

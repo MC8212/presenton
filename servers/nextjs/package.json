@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev ",
+    "dev": "next dev",
+    "dev:grab": "concurrently \"next dev\" \"npx @react-grab/claude-code@latest\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -66,7 +67,9 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
+    "@react-grab/claude-code": "^0.0.85",
     "@types/babel__standalone": "^7.1.9",
+    "concurrently": "^9.1.2",
     "@types/node": "^20",
     "@types/prismjs": "^1.26.5",
     "@types/puppeteer": "^5.4.7",

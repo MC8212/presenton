@@ -21,9 +21,14 @@ docker compose up --build development-gpu
 
 ### Manual Local Development
 
+**Prerequisites:**
+1. Create the `app_data` directory at project root (if not exists)
+2. Ensure `servers/fastapi/.env` exists with `APP_DATA_DIRECTORY` set
+
 **Backend (FastAPI):**
 ```bash
 cd servers/fastapi
+# Ensure .env file exists (see Environment Configuration below)
 python server.py --port 8000 --reload true
 ```
 
@@ -32,9 +37,36 @@ python server.py --port 8000 --reload true
 cd servers/nextjs
 npm install
 npm run dev      # Development with hot reload
+npm run dev:grab # Development with react-grab for template refinement
 npm run build    # Production build
 npm run lint     # Run ESLint
 ```
+
+### Local Development Environment Setup
+
+For local (non-Docker) development on Windows, the backend requires environment configuration:
+
+**1. Create the `.env` file:**
+```bash
+# servers/fastapi/.env
+APP_DATA_DIRECTORY=C:/path/to/presenton/app_data
+```
+
+**2. Create the `app_data` directory:**
+```bash
+mkdir app_data
+```
+
+**Why this is needed:**
+- The backend uses `APP_DATA_DIRECTORY` for SQLite database storage
+- Docker containers use `/app/container.db` which doesn't exist locally
+- The `.env` file is loaded by `python-dotenv` at startup
+- Without this, the server fails with "unable to open database file"
+
+**Files modified for local development support:**
+- `services/database.py` - Added `load_dotenv()` and configurable container DB path
+- `api/main.py` - Added `load_dotenv()` at top of file
+- `servers/fastapi/.env` - Created with `APP_DATA_DIRECTORY` (gitignored)
 
 **MCP Server:**
 ```bash
@@ -199,9 +231,14 @@ When syncing with upstream, these NH-specific files/directories require special 
 | Path | Type | Notes |
 |------|------|-------|
 | `servers/nextjs/presentation-templates/nh-*` | Directory | NH-branded slide templates |
+| `servers/nextjs/components/ReactGrabProvider.tsx` | File | React-grab integration for template development |
 | `servers/fastapi/services/vision_llm_service.py` | File | Multi-provider vision service |
+| `servers/fastapi/services/database.py` | File | Modified for local dev (dotenv, configurable paths) |
+| `servers/fastapi/api/main.py` | File | Modified for local dev (dotenv loading) |
 | `servers/fastapi/api/v1/ppt/endpoints/template_providers.py` | File | Provider availability endpoint |
+| `servers/fastapi/.env` | File | Local environment config (gitignored) |
 | `.claude/` | Directory | Claude Code configuration |
+| `.claude/skills/react-grab-templates.md` | File | React-grab skill for Claude Code |
 | `app_data/` | Directory | Runtime data (gitignored, backup separately) |
 
 **Warning:** The `app_data/` directory contains:
@@ -347,3 +384,50 @@ If NH templates are lost during sync:
 2. Commit changes with descriptive messages
 3. Push to origin: `git push origin nh-custom`
 4. Periodically sync with upstream using `/sync-upstream`
+
+## React-Grab Integration (Template Development)
+
+[React-grab](https://github.com/aidenybai/react-grab) enables point-and-click element capture for faster template refinement with Claude Code.
+
+### Setup
+
+```bash
+# Start dev server with react-grab enabled
+cd servers/nextjs
+npm run dev:grab
+```
+
+This runs both:
+- Next.js dev server (port 3000)
+- @react-grab/claude-code server (port 4567)
+
+### Usage
+
+1. Navigate to `/custom-template` or `/template-preview` in your browser
+2. Hold **⌘** (Mac) or **Ctrl** (Windows) and click any element
+3. Context is automatically sent to Claude Code
+
+### What Gets Captured
+
+| Data | Description |
+|------|-------------|
+| File path | Location of the component file |
+| Component name | React component name |
+| HTML markup | Current rendered HTML |
+| CSS classes | Tailwind classes applied |
+
+### Skill
+
+Use the `react-grab-templates` skill for guided template refinement workflows:
+
+```
+/skill react-grab-templates
+```
+
+### Where It Loads
+
+React-grab only loads in development mode on template pages:
+- `/custom-template` - Custom template creation
+- `/template-preview` - Template browser and preview
+
+It does NOT load on other pages to avoid interfering with normal usage.
